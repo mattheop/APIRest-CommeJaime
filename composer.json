@@ -1,0 +1,29 @@
+{
+  "name": "iut/apirest-commejaime",
+  "type": "project",
+  "require-dev": {
+    "symfony/var-dumper": "^6.2"
+  },
+  "authors": [
+    {
+      "name": "Matthéo PERELLE",
+      "email": "mattheo.perelle@etu.iut-tlse3.fr"
+    },
+    {
+      "name": "Anna NIETO",
+      "email": "anna.nieto@etu.iut-tlse3.fr"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "require": {
+    "slim/slim": "^4.11",
+    "slim/psr7": "^1.6",
+    "vlucas/phpdotenv": "^5.5",
+    "ext-json": "*",
+    "ext-pdo": "*"
+  }
+}
