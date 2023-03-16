@@ -1,3 +1,4 @@
 .idea/
 APIRest-CommeJaime.iml
-.vendors/
+.vendor/
+composer.lock
