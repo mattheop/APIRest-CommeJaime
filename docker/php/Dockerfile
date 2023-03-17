@@ -1,0 +1,11 @@
+FROM php:8.1-fpm-alpine
+
+RUN apk update && apk add --no-cache \
+    git \
+    gnupg \
+    unzip \
+    zip
+
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
+COPY docker/php/conf/dev.ini /usr/local/etc/php/conf.d/app.ini

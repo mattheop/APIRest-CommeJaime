@@ -1,0 +1,24 @@
+# Description: Docker compose file for production environment
+version: '3.9'
+volumes:
+  apiWebData:
+  apiDBData:
+
+services:
+  api_web:
+    restart: always
+    environment:
+      DB_NAME: 'commejaime'
+      DB_HOST: 'api_db'
+      DB_USER: 'root'
+      DB_PASS: '${DB_PASS}'
+  api_php:
+    environment:
+      DB_NAME: 'commejaime'
+      DB_HOST: 'api_db'
+      DB_USER: 'root'
+      DB_PASS: '${DB_PASS}'
+  api_db:
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASS}'
+      MYSQL_DATABASE: 'commejaime'

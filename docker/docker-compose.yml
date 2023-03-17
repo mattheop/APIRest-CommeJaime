@@ -1,0 +1,38 @@
+version: '3.9'
+volumes:
+  apiWebData:
+  apiDBData:
+networks:
+  apiNetwork:
+    driver: bridge
+
+services:
+  api_web:
+    container_name: 'api_web'
+    build:
+      context: './..'
+      dockerfile: './docker/nginx/Dockerfile'
+    volumes:
+      - apiWebData:/var/www/html
+    links:
+      - 'api_php:php'
+    networks:
+      - apiNetwork
+  api_php:
+    container_name: 'api_php'
+    volumes:
+      - apiWebData:/var/www/html
+    build:
+      context: './..'
+      dockerfile: './docker/php/Dockerfile'
+    networks:
+      - apiNetwork
+  api_db:
+    container_name: 'api_db'
+    build:
+      context: './..'
+      dockerfile: './docker/mysql/Dockerfile'
+    volumes:
+      - apiDBData:/var/lib/mysql
+    networks:
+      - apiNetwork

@@ -1,0 +1,29 @@
+version: '3.9'
+volumes:
+  apiWebData:
+  apiDBData:
+
+services:
+  api_web:
+    volumes:
+      - ./../:/var/www/html
+    environment:
+      DB_NAME: 'commejaime'
+      DB_HOST: 'api_db'
+      DB_USER: 'root'
+      DB_PASS: ''
+    ports:
+      - '8181:80'
+  api_php:
+    environment:
+      DB_NAME: 'commejaime'
+      DB_HOST: 'api_db'
+      DB_USER: 'root'
+      DB_PASS: ''
+    volumes:
+      - ./../:/var/www/html
+  api_db:
+    environment:
+      MYSQL_ROOT_PASSWORD: ''
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+      MYSQL_DATABASE: 'commejaime'

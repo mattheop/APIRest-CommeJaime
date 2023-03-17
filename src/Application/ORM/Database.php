@@ -16,11 +16,16 @@ class Database
      */
     private function __construct()
     {
-        $this->PDOInstance = new PDO("mysql:host=localhost;dbname=commejaime", "root", "");
+        $DB_NAME = $_ENV['DB_NAME'] ?? 'commejaime';
+        $DB_HOST = $_ENV['DB_HOST'] ?? 'localhost';
+        $DB_USER = $_ENV['DB_USER'] ?? 'root';
+        $DB_PASS = $_ENV['DB_PASS'] ?? '';
+
+        $this->PDOInstance = new PDO('mysql:dbname=' . $DB_NAME . ';host=' . $DB_HOST . ';charset=utf8', $DB_USER, $DB_PASS);
         $this->PDOInstance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
         $this->PDOInstance->query('SET NAMES utf8');
         $this->PDOInstance->query('SET CHARACTER SET utf8');
-        $this->PDOInstance->setAttribute( PDO::ATTR_CASE, PDO::CASE_NATURAL );
+        $this->PDOInstance->setAttribute(PDO::ATTR_CASE, PDO::CASE_NATURAL);
     }
 
     /**
