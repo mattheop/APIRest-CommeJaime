@@ -14,6 +14,8 @@ return static function (App $app) {
         $apiGroup->group("/posts", function (RouteCollectorProxy $postGroup) {
             $postGroup->get("", [PostController::class, 'fetchAll']);
             $postGroup->get("/{id}", [PostController::class, 'fetch']);
+            $postGroup->delete("/{id}", [PostController::class, 'delete']);
+            $postGroup->post("", [PostController::class, 'post']);
         });
     })->addMiddleware(new JSONHeaderMiddleware());
 
