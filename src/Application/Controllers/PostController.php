@@ -38,4 +38,59 @@ class PostController
         return $response->withStatus(200);
     }
 
+    public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args)
+    {
+        $q = Database::getInstance()->getPDO()->prepare("DELETE FROM posts WHERE id_post = ?");
+        $q->execute([(int)$args["id"]]);
+        if ($q ->rowCount()==0) {
+            $response->getBody()->write(json_encode([
+                "success" => false
+            ]));
+            return $response->withStatus(404);
+        } else {
+            $response->getBody()->write(json_encode([
+                "success" => true,
+            ]));
+        }
+        return $response->withStatus(200);
+    }
+
+    public function post(ServerRequestInterface $request, ResponseInterface $response, array $args)
+    {
+        $request->getParsedBody();
+        $body = $request->getParsedBody();
+
+        $title = $body['title'];
+        $content = $body['content'];
+        $id_user = $body['id_user'];
+
+        if (!(isset($title))){
+            $response->getBody()->write(json_encode([
+                "success" => false,
+                "data" => "Le titre n'est pas renseigné"
+            ]));
+            return $response->withStatus(500);
+        }
+        if (!(isset($content))){
+            $response->getBody()->write(json_encode([
+                "success" => false,
+                "data" => "Le contenu n'est pas renseigné"
+            ]));
+            return $response->withStatus(500);
+        }
+        if (!(isset($id_user))){
+            $response->getBody()->write(json_encode([
+                "success" => false,
+                "data" => "L'identifiant de l'utilisateur n'est pas renseigné"
+            ]));
+            return $response->withStatus(500);
+        }
+        $q = Database::getInstance()->getPDO()->prepare("INSERT INTO posts(title,content,id_user) values(?,?,?)");
+        $q->execute([$title,$content,$id_user]);
+        $response->getBody()->write(json_encode([
+            "success" => true
+        ]));
+        return $response->withStatus(200);
+    }
+
 }

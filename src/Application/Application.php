@@ -37,6 +37,7 @@ class Application
 
     private function registerErrorHandler(): void
     {
+        $this->app->addBodyParsingMiddleware();
         $errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
         $errorHandler = $errorMiddleware->getDefaultErrorHandler();
         $errorHandler->forceContentType('application/json');
