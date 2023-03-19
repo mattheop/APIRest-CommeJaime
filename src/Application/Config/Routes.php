@@ -17,6 +17,7 @@ return static function (App $app) {
             $postGroup->delete("/{id}", [PostController::class, 'delete']);
             $postGroup->post("", [PostController::class, 'post']);
             $postGroup->post("/{id_post}/like", [PostController::class, 'postLike']);
+            $postGroup->delete("/{id_post}/{id_user}/like", [PostController::class, 'deleteLike']);
         });
     })->addMiddleware(new JSONHeaderMiddleware());
 

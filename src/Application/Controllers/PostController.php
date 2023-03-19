@@ -131,4 +131,23 @@ class PostController
         return $response->withStatus(200);
     }
 
+    public function deleteLike(ServerRequestInterface $request, ResponseInterface $response, array $args)
+    {
+        $id_post = (int)$args["id_post"];
+        $id_user = (int)$args["id_user"];
+        $q = Database::getInstance()->getPDO()->prepare("DELETE FROM liked WHERE id_post = ? AND id_user = ? ");
+        $q->execute([$id_post,$id_user]);
+        $q->errorInfo();
+        if ($q->rowCount() == 0) {
+            $response->getBody()->write(json_encode([
+                "success" => false
+            ]));
+            return $response->withStatus(404);
+        } else {
+            $response->getBody()->write(json_encode([
+                "success" => true,
+            ]));
+        }
+        return $response->withStatus(200);
+    }
 }
