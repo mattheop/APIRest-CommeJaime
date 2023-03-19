@@ -27,3 +27,15 @@ services:
       MYSQL_ROOT_PASSWORD: ''
       MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
       MYSQL_DATABASE: 'commejaime'
+
+  api_phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: api_db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ''
+    ports:
+      - '8182:80'
+    networks:
+      - apiNetwork
