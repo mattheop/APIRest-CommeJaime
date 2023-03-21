@@ -2,22 +2,47 @@
 
 namespace App\Application\Controllers;
 
+use App\Application\Application;
 use App\Application\ORM\Database;
+use App\Domain\Phrase\PhraseRepository;
+use App\Domain\Posts\PostModel;
+use App\Domain\Posts\PostRepository;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class PostController
 {
+    private PostRepository $modelRepository;
+
+    public function __construct()
+    {
+        $this->modelRepository = new PostRepository();
+    }
 
     public function fetchAll(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $q = Database::getInstance()->getPDO()->query("SELECT * FROM posts");
-        $result = $q->fetchAll(PDO::FETCH_ASSOC);
+        $limit = (int)($request->getQueryParams()["limit"] ?? PostRepository::FETCH_ALL_LIMIT);
+        $page = (int)($request->getQueryParams()["page"] ?? 1);
+        $result = $this->modelRepository->fetchAll($limit, $page);
+
+        $links = [
+            "previous_page" => null,
+            "next_page" => null,
+        ];
+        if ($page > 1) {
+            $links["previous_page"] = Application::getInstance()->getRouteParser()->urlFor("posts.fetchAll", [], ["limit" => $limit, "page" => $page - 1]);
+        }
+
+        if (count($result) > 0) {
+            $links["next_page"] = Application::getInstance()->getRouteParser()->urlFor("posts.fetchAll", [], ["limit" => $limit, "page" => $page + 1]);
+        }
 
         $response->getBody()->write(json_encode([
             "success" => true,
+            "parameters" => compact('limit', 'page'),
             "count" => count($result),
+            "links" => $links,
             "data" => $result
         ]));
         return $response->withStatus(200);
@@ -25,11 +50,9 @@ class PostController
 
     public function fetch(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
-        $q = Database::getInstance()->getPDO()->prepare("SELECT * FROM posts WHERE id_post = ?");
-        $q->execute([(int)$args["id"]]);
-        $fetched = $q->fetch(PDO::FETCH_ASSOC);
+        $fetched = $this->modelRepository->fetch($args["id"]);
 
-        if (is_bool($fetched) && $fetched === false) {
+        if ($fetched === null) {
             $response->getBody()->write(json_encode([
                 "success" => false,
             ]));
@@ -45,9 +68,7 @@ class PostController
 
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
-        $q = Database::getInstance()->getPDO()->prepare("DELETE FROM posts WHERE id_post = ?");
-        $q->execute([(int)$args["id"]]);
-        if ($q->rowCount() == 0) {
+        if (!$this->modelRepository->delete((int)$args["id"])) {
             $response->getBody()->write(json_encode([
                 "success" => false
             ]));
@@ -57,9 +78,13 @@ class PostController
         $response->getBody()->write(json_encode([
             "success" => true,
         ]));
+
         return $response->withStatus(200);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function post(ServerRequestInterface $request, ResponseInterface $response)
     {
         $request->getParsedBody();
@@ -89,20 +114,15 @@ class PostController
             return $response->withStatus(400);
         }
 
-        $title = $body['title'];
-        $content = $body['content'];
-        $id_user = $body['id_user'];
-
-        $q = Database::getInstance()->getPDO()->prepare("INSERT INTO posts(title,content,id_user) values(?,?,?)");
-        $q->execute([$title, $content, $id_user]);
-
-        $q = Database::getInstance()->getPDO()->prepare("SELECT * FROM posts WHERE id_post = ?");
-        $q->execute([Database::getInstance()->getPDO()->lastInsertId()]);
-        $fetched = $q->fetch(PDO::FETCH_ASSOC);
+        $newPost = new PostModel();
+        $newPost->setTitle($body['title']);
+        $newPost->setContent($body['content']);
+        $newPost->setIdUser($body['id_user']);
+        $newPost->save();
 
         $response->getBody()->write(json_encode([
             "success" => true,
-            "data" => $fetched
+            "data" => $newPost
         ]));
 
         return $response->withStatus(200);

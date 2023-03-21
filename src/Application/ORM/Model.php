@@ -42,13 +42,13 @@ abstract class Model implements JsonSerializable
         }
 
         foreach ($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) { // consider only public properties of the providen
+            // check if property is initialized
+            if (!$property->isInitialized($this)) continue;
+
             $propertyName = $property->getName();
 
             // skip id property and null values
             if ($propertyName === 'id') continue;
-
-            // check if property is initialized
-            if (!$property->isInitialized($this)) continue;
 
             if ($this->{$propertyName} === null) continue;
 

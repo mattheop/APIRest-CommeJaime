@@ -37,4 +37,24 @@ class PostRepository
         return array_map([$this->rowMapper, 'map'], $statement->fetchAll(PDO::FETCH_ASSOC));
     }
 
+    public function fetch(int $id): ?PostModel
+    {
+        $statement = Database::getInstance()->getPDO()->prepare('SELECT * FROM posts WHERE id_post = :id');
+        $statement->execute(compact('id'));
+
+        if ($statement->rowCount() === 0) {
+            return null;
+        }
+
+        return $this->rowMapper->map($statement->fetch(PDO::FETCH_ASSOC));
+    }
+
+    public function delete(int $id): bool
+    {
+        $q = Database::getInstance()->getPDO()->prepare("DELETE FROM posts WHERE id_post = ?");
+        $q->execute([$id]);
+
+        return $q->rowCount() > 0;
+    }
+
 }

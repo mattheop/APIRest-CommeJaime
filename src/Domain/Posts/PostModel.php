@@ -18,7 +18,7 @@ class PostModel extends Model implements JsonSerializable
     public string $content;
     #[ColumnNameAttribute("created_at")]
     #[ColumnParserAttribute(DateTimeColumnParser::class)]
-    public DateTime $createdAt;
+    public ?DateTime $createdAt = null;
 
     #[ColumnNameAttribute("id_user")]
     public string $idUser;
@@ -111,7 +111,7 @@ class PostModel extends Model implements JsonSerializable
             "attributes" => [
                 "title" => $this->title,
                 "content" => $this->content,
-                "created_at" => $this->createdAt->format("Y-m-d H:i:s"),
+                "created_at" => $this->createdAt?->format("Y-m-d H:i:s"),
                 "id_user" => $this->idUser
             ],
         ];
