@@ -9,7 +9,7 @@ use App\Application\ORM\Model;
 use DateTime;
 use JsonSerializable;
 
-class PostsModel extends Model implements JsonSerializable
+class PostModel extends Model implements JsonSerializable
 {
     protected string $tableName = "posts";
     #[ColumnNameAttribute("id_post")]
@@ -41,9 +41,9 @@ class PostsModel extends Model implements JsonSerializable
 
     /**
      * @param string $title
-     * @return PostsModel
+     * @return PostModel
      */
-    public function setTitle(string $title): PostsModel
+    public function setTitle(string $title): PostModel
     {
         $this->title = $title;
         return $this;
@@ -59,9 +59,9 @@ class PostsModel extends Model implements JsonSerializable
 
     /**
      * @param string $content
-     * @return PostsModel
+     * @return PostModel
      */
-    public function setContent(string $content): PostsModel
+    public function setContent(string $content): PostModel
     {
         $this->content = $content;
         return $this;
@@ -77,9 +77,9 @@ class PostsModel extends Model implements JsonSerializable
 
     /**
      * @param DateTime $createdAt
-     * @return PostsModel
+     * @return PostModel
      */
-    public function setCreatedAt(DateTime $createdAt): PostsModel
+    public function setCreatedAt(DateTime $createdAt): PostModel
     {
         $this->createdAt = $createdAt;
         return $this;
@@ -95,9 +95,9 @@ class PostsModel extends Model implements JsonSerializable
 
     /**
      * @param string $idUser
-     * @return PostsModel
+     * @return PostModel
      */
-    public function setIdUser(string $idUser): PostsModel
+    public function setIdUser(string $idUser): PostModel
     {
         $this->idUser = $idUser;
         return $this;

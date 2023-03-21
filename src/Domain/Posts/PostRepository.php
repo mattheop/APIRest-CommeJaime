@@ -13,12 +13,12 @@ class PostRepository
 
     public function __construct()
     {
-        $this->rowMapper = new RowMapper(PostsModel::class);
+        $this->rowMapper = new RowMapper(PostModel::class);
     }
 
     /**
      * Permet de récupérer tous les posts depuis la base de données.
-     * @return PostsModel[]
+     * @return PostModel[]
      */
     public function fetchAll(?int $limit = null, ?int $page = null): array
     {
