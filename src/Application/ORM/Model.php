@@ -10,7 +10,7 @@ use ReflectionClass;
 
 abstract class Model implements JsonSerializable
 {
-    protected ?int $id;
+    public ?int $id;
     protected string $tableName;
 
     /**
@@ -31,19 +31,25 @@ abstract class Model implements JsonSerializable
         $db = Database::getInstance()->getPDO();
 
         $class = new ReflectionClass($this);
+        $idColumnName = "id";
+        $idProperty = $class->getProperty('id');
 
         $propsToImplode = [];
+
+        if(sizeof($idProperty->getAttributes(ColumnNameAttribute::class)) > 0) {
+            $idColumnNameAttribute = $idProperty->getAttributes(ColumnNameAttribute::class)[0]->newInstance();
+            $idColumnName = $idColumnNameAttribute->getColumnName();
+        }
 
         foreach ($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) { // consider only public properties of the providen
             $propertyName = $property->getName();
 
-            // check if property is initialized
-            if (!$property->isInitialized($this)) {
-                throw new Exception("Property $propertyName is not initialized");
-            }
-
             // skip id property and null values
             if ($propertyName === 'id') continue;
+
+            // check if property is initialized
+            if (!$property->isInitialized($this)) continue;
+
             if ($this->{$propertyName} === null) continue;
 
             $value = $this->{$propertyName};
@@ -56,7 +62,6 @@ abstract class Model implements JsonSerializable
             }
 
             $columnNameAttributes = $property->getAttributes(ColumnNameAttribute::class);
-
             if (sizeof($columnNameAttributes) > 0) {
                 $columnNameAttribute = $columnNameAttributes[0]->newInstance();
                 $propertyName = $columnNameAttribute->getColumnName();
@@ -69,7 +74,7 @@ abstract class Model implements JsonSerializable
         $setClause = implode(',', $propsToImplode);
 
         if ($this->id !== null) {
-            $sqlQuery = 'UPDATE `' . $this->tableName . '` SET ' . $setClause . ' WHERE id = ' . $db->quote($this->id);
+            $sqlQuery = 'UPDATE `' . $this->tableName . '` SET ' . $setClause . ' WHERE '. $idColumnName . ' = ' . $db->quote($this->id);
         } else {
             $sqlQuery = 'INSERT INTO ' . $this->tableName . ' SET ' . $setClause;
         }
