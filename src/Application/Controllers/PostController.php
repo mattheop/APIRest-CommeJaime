@@ -8,6 +8,7 @@ use App\Application\services\AuthService;
 use App\Domain\Phrase\PhraseRepository;
 use App\Domain\Posts\PostModel;
 use App\Domain\Posts\PostRepository;
+use App\Domain\Users\Roles;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -26,6 +27,7 @@ class PostController
         $limit = (int)($request->getQueryParams()["limit"] ?? PostRepository::FETCH_ALL_LIMIT);
         $page = (int)($request->getQueryParams()["page"] ?? 1);
         $result = $this->modelRepository->fetchAll($limit, $page);
+        $user = AuthService::getUserFromRequest($request, false);
 
         $links = [
             "previous_page" => null,
@@ -39,12 +41,25 @@ class PostController
             $links["next_page"] = Application::getInstance()->getRouteParser()->urlFor("posts.fetchAll", [], ["limit" => $limit, "page" => $page + 1]);
         }
 
+        $json_data = $result;
+
+        if($user?->getRole() === Roles::ROLE_PUBLISHER) {
+            $json_data = array_reduce($result, function (array $carry, PostModel $item) {
+                $json = $item->jsonSerialize();
+                $json["attributes"]["likes_count"] = $item->getLikesCount();
+                $json["attributes"]["dislikes_count"] = $item->getDislikesCount();
+
+                $carry[] = $json;
+                return $carry;
+            }, []);
+        }
+
         $response->getBody()->write(json_encode([
             "success" => true,
             "parameters" => compact('limit', 'page'),
             "count" => count($result),
             "links" => $links,
-            "data" => $result
+            "data" => $json_data
         ]));
         return $response->withStatus(200);
     }

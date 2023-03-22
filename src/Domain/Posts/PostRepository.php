@@ -11,6 +11,8 @@ class PostRepository
     public const FETCH_ALL_LIMIT = 15;
     private RowMapper $rowMapper;
 
+    private const DEFAULT_FETCH = "SELECT p.*, COUNT(CASE WHEN l.is_up = true THEN 1 ELSE null END) AS likes_count, COUNT(CASE WHEN l.is_up = false THEN 1 ELSE null END) AS dislikes_count FROM posts p JOIN users u ON p.id_user = u.id_user LEFT JOIN liked l ON p.id_post = l.id_post GROUP BY p.id_post;";
+
     public function __construct()
     {
         $this->rowMapper = new RowMapper(PostModel::class);
@@ -27,7 +29,7 @@ class PostRepository
 
         $offset = ($page - 1) * $limit;
 
-        $statement = Database::getInstance()->getPDO()->prepare("SELECT * FROM posts LIMIT ? OFFSET ?");
+        $statement = Database::getInstance()->getPDO()->prepare(self::DEFAULT_FETCH . " LIMIT ? OFFSET ?");
 
         $statement->bindParam(1, $limit, PDO::PARAM_INT);
         $statement->bindParam(2, $offset, PDO::PARAM_INT);
@@ -39,7 +41,7 @@ class PostRepository
 
     public function fetch(int $id): ?PostModel
     {
-        $statement = Database::getInstance()->getPDO()->prepare('SELECT * FROM posts WHERE id_post = :id');
+        $statement = Database::getInstance()->getPDO()->prepare(self::DEFAULT_FETCH . ' WHERE id_post = :id');
         $statement->execute(compact('id'));
 
         if ($statement->rowCount() === 0) {

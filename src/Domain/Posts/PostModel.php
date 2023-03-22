@@ -19,9 +19,12 @@ class PostModel extends Model implements JsonSerializable
     #[ColumnNameAttribute("created_at")]
     #[ColumnParserAttribute(DateTimeColumnParser::class)]
     public ?DateTime $createdAt = null;
-
     #[ColumnNameAttribute("id_user")]
     public string $idUser;
+    #[ColumnNameAttribute("likes_count")]
+    public ?int $likesCount = null;
+    #[ColumnNameAttribute("dislikes_count")]
+    public ?int $dislikesCount = null;
 
     /**
      * @return int|null
@@ -103,17 +106,34 @@ class PostModel extends Model implements JsonSerializable
         return $this;
     }
 
+    /**
+     * @return int|null
+     */
+    public function getLikesCount(): ?int
+    {
+        return $this->likesCount;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getDislikesCount(): ?int
+    {
+        return $this->dislikesCount;
+    }
+
     public function jsonSerialize(): array
     {
-        return [
+        $json = [
             "type" => "posts",
             "id" => $this->id,
             "attributes" => [
                 "title" => $this->title,
                 "content" => $this->content,
                 "created_at" => $this->createdAt?->format("Y-m-d H:i:s"),
-                "id_user" => $this->idUser
+                "id_user" => $this->idUser,
             ],
         ];
+        return $json;
     }
 }

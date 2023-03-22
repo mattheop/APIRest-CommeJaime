@@ -50,11 +50,13 @@ class AuthService
         return $user;
     }
 
-    public static function getUserFromRequest(ServerRequestInterface $request): UserModel
+    public static function getUserFromRequest(ServerRequestInterface $request, bool $exception = true): ?UserModel
     {
         $user = $request->getAttribute("user");
         if ($user instanceof UserModel === false) {
-            throw new UnauthenticatedException($request, "Vous devez être connecté pour accéder à cette ressource.");
+            if($exception)
+                throw new UnauthenticatedException($request, "Vous devez être connecté pour accéder à cette ressource.");
+            return null;
         }
 
         return $user;
