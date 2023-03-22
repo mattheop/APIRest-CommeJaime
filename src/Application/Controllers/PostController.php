@@ -4,6 +4,7 @@ namespace App\Application\Controllers;
 
 use App\Application\Application;
 use App\Application\ORM\Database;
+use App\Application\services\AuthService;
 use App\Domain\Phrase\PhraseRepository;
 use App\Domain\Posts\PostModel;
 use App\Domain\Posts\PostRepository;
@@ -68,9 +69,22 @@ class PostController
 
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
+        $post = $this->modelRepository->fetch((int)$args["id"]);
+        $user = AuthService::getUserFromRequest($request);
+
+        // Si l'utilisateur n'est pas l'auteur du post, on ne peut pas le supprimer
+        if ($post->getIdUser() !== $user->getId()) {
+            $response->getBody()->write(json_encode([
+                "success" => false,
+                "data" => "Vous n'êtes pas l'auteur de ce post"
+            ]));
+            return $response->withStatus(403);
+        }
+
         if (!$this->modelRepository->delete((int)$args["id"])) {
             $response->getBody()->write(json_encode([
-                "success" => false
+                "success" => false,
+                "data" => "Le post n'a pas pu être supprimé"
             ]));
             return $response->withStatus(404);
         }
@@ -106,18 +120,12 @@ class PostController
             return $response->withStatus(400);
         }
 
-        if (empty($body['id_user'])) {
-            $response->getBody()->write(json_encode([
-                "success" => false,
-                "data" => "L'identifiant de l'utilisateur n'est pas renseigné"
-            ]));
-            return $response->withStatus(400);
-        }
+        $user = AuthService::getUserFromRequest($request);
 
         $newPost = new PostModel();
         $newPost->setTitle($body['title']);
         $newPost->setContent($body['content']);
-        $newPost->setIdUser($body['id_user']);
+        $newPost->setIdUser($user->getId());
         $newPost->save();
 
         $response->getBody()->write(json_encode([

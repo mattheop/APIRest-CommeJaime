@@ -13,6 +13,7 @@ $baseDir = __DIR__ . '/../../';
 
 class Application
 {
+    public const SECRET = "b4e7cb2b342aced244ae0cad404f0621041d68655b214971d1d0b42050f7a2ca";
     private static ?self $instance = null;
 
     private App $app;

@@ -86,9 +86,9 @@ class PostModel extends Model implements JsonSerializable
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getIdUser(): string
+    public function getIdUser(): int
     {
         return $this->idUser;
     }
