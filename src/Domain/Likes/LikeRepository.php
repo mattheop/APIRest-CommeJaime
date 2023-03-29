@@ -6,6 +6,7 @@ use App\Application\ORM\Database;
 use App\Application\ORM\RowMapper;
 use App\Domain\Posts\PostModel;
 use PDO;
+use ReflectionException;
 
 class LikeRepository
 {
@@ -34,7 +35,7 @@ class LikeRepository
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function fetch(int $idLike): ?LikeModel {
         $statement = Database::getInstance()->getPDO()->prepare("SELECT * FROM liked WHERE id_liked = ?");
@@ -51,6 +52,14 @@ class LikeRepository
     {
         $q = Database::getInstance()->getPDO()->prepare("DELETE FROM liked WHERE id_liked = ?");
         $q->execute([$idLike]);
+
+        return $q->rowCount() > 0;
+    }
+
+    public function deleteByPostAndUser(int $idPost, int $idUser): bool
+    {
+        $q = Database::getInstance()->getPDO()->prepare("DELETE FROM liked WHERE id_post = ? AND id_user = ?");
+        $q->execute([$idPost, $idUser]);
 
         return $q->rowCount() > 0;
     }

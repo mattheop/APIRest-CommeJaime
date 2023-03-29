@@ -5,11 +5,13 @@ namespace App\Application\Controllers;
 use App\Application\Application;
 use App\Application\ORM\Database;
 use App\Application\services\AuthService;
+use App\Domain\Likes\LikeModel;
+use App\Domain\Likes\LikeRepository;
 use App\Domain\Phrase\PhraseRepository;
 use App\Domain\Posts\PostModel;
 use App\Domain\Posts\PostRepository;
 use App\Domain\Users\Roles;
-use PDO;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -43,7 +45,7 @@ class PostController
 
         $json_data = $result;
 
-        if($user?->getRole() === Roles::ROLE_PUBLISHER) {
+        if ($user?->getRole() === Roles::ROLE_PUBLISHER) {
             $json_data = array_reduce($result, function (array $carry, PostModel $item) {
                 $json = $item->jsonSerialize();
                 $json["attributes"]["likes_count"] = $item->getLikesCount();
@@ -112,7 +114,7 @@ class PostController
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function post(ServerRequestInterface $request, ResponseInterface $response)
     {
@@ -164,14 +166,16 @@ class PostController
             return $response->withStatus(400);
         }
 
-        $id_user = $body['id_user'];
         $is_up = $body['is_up'] ?? true;
-        $id_post = (int)$args["id_post"];
 
-        $q = Database::getInstance()->getPDO()->prepare("INSERT INTO liked(id_post,id_user,is_up) values(?,?,?)");
-        $q->execute([$id_post, $id_user, $is_up]);
+        $likeModel = new LikeModel();
+        $likeModel->setIdPost((int)$args["id_post"])
+            ->setIdUser((int)$body['id_user'])
+            ->setIsUp((bool)$is_up);
 
-        if ($q->errorInfo()[0] == 23000) {
+        try {
+            $likeModel->save();
+        } catch (Exception) {
             $response->getBody()->write(json_encode([
                 "success" => false,
                 "data" => "Vous avez déjà liké ce post"
@@ -181,7 +185,7 @@ class PostController
 
         $response->getBody()->write(json_encode([
             "success" => true,
-            "data" => compact('id_post', 'id_user', 'is_up')
+            "data" => $likeModel->jsonSerialize()
         ]));
 
         return $response->withStatus(200);
@@ -202,11 +206,10 @@ class PostController
         $id_post = (int)$args["id_post"];
         $id_user = (int)$body['id_user'];
 
-        $q = Database::getInstance()->getPDO()->prepare("DELETE FROM liked WHERE id_post = ? AND id_user = ? ");
-        $q->execute([$id_post, $id_user]);
-        $q->errorInfo();
+        $likeRepository = new LikeRepository();
+        $affected = $likeRepository->deleteByPostAndUser($id_post, $id_user);
 
-        if ($q->rowCount() == 0) {
+        if ($affected == 0) {
             $response->getBody()->write(json_encode([
                 "success" => false,
                 "data" => "Vous n'aviez pas liké ce post"
