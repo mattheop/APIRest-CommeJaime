@@ -2,6 +2,7 @@
 
 namespace App\Domain\Posts;
 
+use App\Application\Application;
 use App\Application\ORM\Attributes\ColumnNameAttribute;
 use App\Application\ORM\Attributes\ColumnParserAttribute;
 use App\Application\ORM\ColumnParser\DateTimeColumnParser;
@@ -132,6 +133,9 @@ class PostModel extends Model implements JsonSerializable
                 "content" => $this->content,
                 "created_at" => $this->createdAt?->format("Y-m-d H:i:s"),
                 "id_user" => $this->idUser,
+            ],
+            "links" => [
+                "self" => Application::getInstance()->getApp()->getRouteCollector()->getRouteParser()->urlFor("posts.fetch", ["id" => $this->id]),
             ],
         ];
         return $json;

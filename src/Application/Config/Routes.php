@@ -19,9 +19,10 @@ return static function (App $app) {
             $postGroup->get("", [PostController::class, 'fetchAll'])
                 ->setName("posts.fetchAll");
 
+            $postGroup->get("/{id}", [PostController::class, 'fetch'])
+                ->setName("posts.fetch");
+
             $postGroup->group("", function (RouteCollectorProxy $authedRoutes){
-                $authedRoutes->get("/{id}", [PostController::class, 'fetch'])
-                    ->setName("posts.fetch");
 
                 $authedRoutes->delete("/{id}", [PostController::class, 'delete'])
                     ->setName("posts.delete");
