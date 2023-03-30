@@ -86,13 +86,23 @@ class PostController
         $post = $this->modelRepository->fetch((int)$args["id"]);
         $user = AuthService::getUserFromRequest($request);
 
-        // Si l'utilisateur n'est pas l'auteur du post, on ne peut pas le supprimer
-        if ($post->getIdUser() !== $user->getId()) {
+        if ($post === null) {
             $response->getBody()->write(json_encode([
                 "success" => false,
-                "data" => "Vous n'êtes pas l'auteur de ce post"
+                "data" => "Le post n'existe pas"
             ]));
-            return $response->withStatus(403);
+            return $response->withStatus(404);
+        }
+
+        // Si l'utilisateur n'est pas l'auteur du post, on ne peut pas le supprimer
+        if ($user->getRole() !== Roles::ROLE_MODERATOR) {
+            if ($post->getIdUser() !== $user->getId()) {
+                $response->getBody()->write(json_encode([
+                    "success" => false,
+                    "data" => "Vous n'êtes pas l'auteur de ce post"
+                ]));
+                return $response->withStatus(403);
+            }
         }
 
         if (!$this->modelRepository->delete((int)$args["id"])) {
@@ -100,11 +110,49 @@ class PostController
                 "success" => false,
                 "data" => "Le post n'a pas pu être supprimé"
             ]));
-            return $response->withStatus(404);
+            return $response->withStatus(400);
         }
 
         $response->getBody()->write(json_encode([
             "success" => true,
+        ]));
+
+        return $response->withStatus(200);
+    }
+
+    public function patch(ServerRequestInterface $request, ResponseInterface $response, array $args)
+    {
+        $body = $request->getParsedBody();
+
+        $fetched = $this->modelRepository->fetch($args["id"]);
+
+        if ($fetched === null) {
+            $response->getBody()->write(json_encode([
+                "success" => false,
+            ]));
+            return $response->withStatus(404);
+        }
+
+        $user = AuthService::getUserFromRequest($request);
+        if ($user->getRole() !== Roles::ROLE_MODERATOR) {
+            if ($fetched->getIdUser() !== $user->getId()) {
+                $response->getBody()->write(json_encode([
+                    "success" => false,
+                    "data" => "Vous n'êtes pas l'auteur de ce post"
+                ]));
+                return $response->withStatus(403);
+            }
+        }
+
+        $toUpdate = array_intersect(array_keys($body), ["title", "content"]);
+        foreach ($toUpdate as $key) {
+            $fetched->{"set" . ucfirst($key)}($body[$key]);
+        }
+
+        $response->getBody()->write(json_encode([
+            "success" => true,
+            "updated_fields" => $toUpdate,
+            "data" => (new PostRoleBasedJSONSerializer($fetched, $user))->jsonSerialize()
         ]));
 
         return $response->withStatus(200);
@@ -115,7 +163,6 @@ class PostController
      */
     public function post(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $request->getParsedBody();
         $body = $request->getParsedBody();
 
         if (empty($body['title'])) {
@@ -153,21 +200,22 @@ class PostController
     public function postLike(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
         $request->getParsedBody();
+        $user = AuthService::getUserFromRequest($request);
         $body = $request->getParsedBody();
-
-        if (empty($body['id_user'])) {
+        $post = $this->modelRepository->fetch((int)$args["id_post"]);
+        if ($post === null) {
             $response->getBody()->write(json_encode([
                 "success" => false,
-                "data" => "L'identifiant de l'utilisateur n'est pas renseigné"
+                "data" => "Le post n'existe pas"
             ]));
-            return $response->withStatus(400);
+            return $response->withStatus(404);
         }
 
         $is_up = $body['is_up'] ?? true;
 
         $likeModel = new LikeModel();
         $likeModel->setIdPost((int)$args["id_post"])
-            ->setIdUser((int)$body['id_user'])
+            ->setIdUser($user->getId())
             ->setIsUp((bool)$is_up);
 
         try {
@@ -191,20 +239,12 @@ class PostController
     public function deleteLike(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
         $body = $request->getParsedBody();
-
-        if (empty($body['id_user'])) {
-            $response->getBody()->write(json_encode([
-                "success" => false,
-                "data" => "L'identifiant de l'utilisateur n'est pas renseigné"
-            ]));
-            return $response->withStatus(400);
-        }
+        $user = AuthService::getUserFromRequest($request);
 
         $id_post = (int)$args["id_post"];
-        $id_user = (int)$body['id_user'];
 
         $likeRepository = new LikeRepository();
-        $affected = $likeRepository->deleteByPostAndUser($id_post, $id_user);
+        $affected = $likeRepository->deleteByPostAndUser($id_post, $user->getId());
 
         if ($affected == 0) {
             $response->getBody()->write(json_encode([

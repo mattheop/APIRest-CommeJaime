@@ -37,3 +37,5 @@ create table if not exists liked
     foreign key (id_post) references posts (id_post),
     foreign key (id_user) references users (id_user)
 );
+
+ALTER TABLE `liked` DROP FOREIGN KEY `liked_ibfk_1`; ALTER TABLE `liked` ADD CONSTRAINT `liked_ibfk_1` FOREIGN KEY (`id_post`) REFERENCES `posts`(`id_post`) ON DELETE CASCADE ON UPDATE CASCADE;

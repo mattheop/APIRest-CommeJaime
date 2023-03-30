@@ -27,6 +27,9 @@ return static function (App $app) {
                 $authedRoutes->delete("/{id}", [PostController::class, 'delete'])
                     ->setName("posts.delete");
 
+                $authedRoutes->patch("/{id}", [PostController::class, 'patch'])
+                    ->setName("posts.patch");
+
                 $authedRoutes->post("", [PostController::class, 'post'])
                     ->setName("posts.create");
 
