@@ -9,6 +9,10 @@ enum Roles
     case ROLE_MODERATOR;
     case ROLE_PUBLISHER;
 
+    public static function ROLE_PUBLISHER()
+    {
+    }
+
     public function toString(): string
     {
         return match ($this) {
@@ -39,6 +43,11 @@ enum Roles
     public function isLowerThan(Roles $minimumRole): bool
     {
         return $this->getPower() < $minimumRole->getPower();
+    }
+
+    public function isMinimum(Roles $maximumRole): bool
+    {
+        return $this->getPower() >= $maximumRole->getPower();
     }
 
 }

@@ -27,11 +27,13 @@ create table if not exists posts
 
 create table if not exists liked
 (
+    id_liked int  not null auto_increment,
     id_post int  not null,
     id_user int  not null,
     is_up   bool not null default true,
 
-    primary key (id_post, id_user),
+    primary key (id_liked),
+    constraint liked_unique unique (id_post, id_user),
     foreign key (id_post) references posts (id_post),
     foreign key (id_user) references users (id_user)
 );

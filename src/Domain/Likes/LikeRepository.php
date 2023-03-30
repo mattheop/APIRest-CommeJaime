@@ -17,7 +17,6 @@ class LikeRepository
     {
         $this->rowMapper = new RowMapper(LikeModel::class);
     }
-
     public function fetchAll(int $idPost): array
     {
         $statement = Database::getInstance()->getPDO()->prepare("SELECT * FROM liked WHERE id_post = ?");

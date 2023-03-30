@@ -10,6 +10,7 @@ use App\Domain\Likes\LikeRepository;
 use App\Domain\Phrase\PhraseRepository;
 use App\Domain\Posts\PostModel;
 use App\Domain\Posts\PostRepository;
+use App\Domain\Posts\PostRoleBasedJSONSerializer;
 use App\Domain\Users\Roles;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
@@ -43,25 +44,18 @@ class PostController
             $links["next_page"] = Application::getInstance()->getRouteParser()->urlFor("posts.fetchAll", [], ["limit" => $limit, "page" => $page + 1]);
         }
 
-        $json_data = $result;
-
-        if ($user?->getRole() === Roles::ROLE_PUBLISHER) {
-            $json_data = array_reduce($result, function (array $carry, PostModel $item) {
-                $json = $item->jsonSerialize();
-                $json["attributes"]["likes_count"] = $item->getLikesCount();
-                $json["attributes"]["dislikes_count"] = $item->getDislikesCount();
-
-                $carry[] = $json;
-                return $carry;
-            }, []);
-        }
+        $result = array_reduce($result, function (array $carry, PostModel $item) use ($user) {
+            $json = new PostRoleBasedJSONSerializer($item, $user);
+            $carry[] = $json->jsonSerialize(false);
+            return $carry;
+        }, []);
 
         $response->getBody()->write(json_encode([
             "success" => true,
             "parameters" => compact('limit', 'page'),
             "count" => count($result),
             "links" => $links,
-            "data" => $json_data
+            "data" => $result
         ]));
         return $response->withStatus(200);
     }
