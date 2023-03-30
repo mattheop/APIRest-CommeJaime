@@ -71,9 +71,12 @@ class PostController
             return $response->withStatus(404);
         }
 
+        $user = AuthService::getUserFromRequest($request, false);
+        $json = new PostRoleBasedJSONSerializer($fetched, $user);
+
         $response->getBody()->write(json_encode([
             "success" => true,
-            "data" => $fetched
+            "data" => $json
         ]));
         return $response->withStatus(200);
     }
