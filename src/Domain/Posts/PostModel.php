@@ -5,6 +5,7 @@ namespace App\Domain\Posts;
 use App\Application\Application;
 use App\Application\ORM\Attributes\ColumnNameAttribute;
 use App\Application\ORM\Attributes\ColumnParserAttribute;
+use App\Application\ORM\Attributes\DoNotSaveAttribute;
 use App\Application\ORM\ColumnParser\DateTimeColumnParser;
 use App\Application\ORM\Model;
 use DateTime;
@@ -23,8 +24,10 @@ class PostModel extends Model implements JsonSerializable
     #[ColumnNameAttribute("id_user")]
     public string $idUser;
     #[ColumnNameAttribute("likes_count")]
+    #[DoNotSaveAttribute]
     public ?int $likesCount = null;
     #[ColumnNameAttribute("dislikes_count")]
+    #[DoNotSaveAttribute]
     public ?int $dislikesCount = null;
 
     /**

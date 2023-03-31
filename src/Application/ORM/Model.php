@@ -4,6 +4,7 @@ namespace App\Application\ORM;
 
 use App\Application\ORM\Attributes\ColumnNameAttribute;
 use App\Application\ORM\Attributes\ColumnParserAttribute;
+use App\Application\ORM\Attributes\DoNotSaveAttribute;
 use Exception;
 use JsonSerializable;
 use ReflectionClass;
@@ -49,6 +50,8 @@ abstract class Model implements JsonSerializable
 
             // skip id property and null values
             if ($propertyName === 'id') continue;
+
+            if(sizeof($property->getAttributes(DoNotSaveAttribute::class)) > 0) continue;
 
             if ($this->{$propertyName} === null) continue;
 

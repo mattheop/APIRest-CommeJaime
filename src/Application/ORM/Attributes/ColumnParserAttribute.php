@@ -3,7 +3,7 @@
 namespace App\Application\ORM\Attributes;
 
 use App\Application\ORM\ColumnParser\ColumnParser;
-use Attribute;
+use \Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ColumnParserAttribute

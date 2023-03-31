@@ -149,6 +149,8 @@ class PostController
             $fetched->{"set" . ucfirst($key)}($body[$key]);
         }
 
+        $fetched->save();
+
         $response->getBody()->write(json_encode([
             "success" => true,
             "updated_fields" => $toUpdate,
