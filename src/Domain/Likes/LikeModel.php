@@ -104,6 +104,7 @@ class LikeModel extends Model implements JsonSerializable
     {
         return [
             "id" => $this->id,
+            "type" => "like",
             "attributes" => [
                 "id_post" => $this->idPost,
                 "id_user" => $this->idUser,

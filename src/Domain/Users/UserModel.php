@@ -115,6 +115,7 @@ class UserModel extends Model implements JsonSerializable
     {
         return [
             "id" => $this->id,
+            "type" => "user",
             "attributes" => [
                 "username" => $this->username,
                 "role" => $this->role->toString()
