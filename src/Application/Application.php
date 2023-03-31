@@ -4,8 +4,12 @@ namespace App\Application;
 
 use App\Application\Middleware\ErrorRenderer;
 use App\Application\Middleware\TrailingSlashMiddleware;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Slim\App;
+use Slim\Exception\HttpNotFoundException;
 use Slim\Factory\AppFactory;
+use Slim\Psr7\Response;
 use Slim\Routing\RouteParser;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -25,6 +29,21 @@ class Application
         $this->registerErrorHandler();
         $this->registerMiddlewares();
         $this->registerRoutes();
+
+        // HttpNotFoundException
+        $this->app->add(static function (
+            ServerRequestInterface $request,
+            RequestHandlerInterface $handler
+        ) {
+            try {
+                return $handler->handle($request);
+            } catch (HttpNotFoundException) {
+                $response = (new Response())->withStatus(404);
+                $response->getBody()->write('404 Route not found');
+
+                return $response;
+            }
+        });
     }
 
     public function getApp(): App{
